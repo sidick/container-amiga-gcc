@@ -78,10 +78,10 @@ RUN NDK=${NDK_VERSION:-3.2} && \
     fi && \
     apply_patch_if_needed() { \
       dir="$1"; patch_file="$2"; \
-      if patch --reverse --dry-run --force -d "$dir" -p1 -i "$patch_file" >/dev/null 2>&1; then \
-        echo "$(basename "$patch_file") already applied upstream, skipping"; \
-      else \
+      if patch --forward --dry-run --batch -d "$dir" -p1 -i "$patch_file" >/dev/null 2>&1; then \
         patch --forward --batch -d "$dir" -p1 -i "$patch_file"; \
+      else \
+        echo "$(basename "$patch_file") does not apply cleanly (already applied upstream?), skipping"; \
       fi; \
     } && \
     apply_patch_if_needed projects/libnix /root/patches/libnix-findtooltype-const.patch && \
