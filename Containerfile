@@ -139,6 +139,11 @@ RUN NDK=${NDK_VERSION:-3.2} && \
       | grep ' _DOSBase$' >/dev/null
 
 # Install all SDKs
+#
+# sdk/filesysbox.sdk's own patch1 step can never find its patch file: GNU
+# patch's -d changes into build/filesysbox before resolving the relative -i
+# path. We apply the patch to projects/filesysbox above instead, so the
+# patch1 line is stripped out below as a dead (and broken) step.
 RUN NDK=${NDK_VERSION:-3.2} && \
     cd /root/amiga-gcc && \
     if [ ! -d projects/filesysbox/.git ]; then \
@@ -151,6 +156,7 @@ RUN NDK=${NDK_VERSION:-3.2} && \
       patch --forward --batch -d projects/filesysbox -p1 -i /root/patches/filesysbox-statvfs-prototype.patch; \
     fi && \
     rm -rf build/filesysbox && \
+    sed -i '/^patch1/d' sdk/filesysbox.sdk && \
     make -j $(nproc) sdk=filesysbox NDK=${NDK} PREFIX=/opt/amiga-${BUILD_GCC_VERSION} && \
     make -j $(nproc) sdk=sdi NDK=${NDK} PREFIX=/opt/amiga-${BUILD_GCC_VERSION} && \
     make -j $(nproc) sdk=ahi NDK=${NDK} PREFIX=/opt/amiga-${BUILD_GCC_VERSION} && \
